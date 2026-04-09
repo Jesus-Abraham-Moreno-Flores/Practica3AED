@@ -16,5 +16,14 @@ public class Persona {
         this.rondaSalida = ronda;
     }
 
-    public void registrar
+    public int getTiempoEnSistema(){
+        if(rondaSalida == -1) return -1;
+        return rondaSalida - rondaEntrada;
+    }
+
+    public int getId(){ return id; }
+    public int getRondaEntrada(){ return rondaEntrada; }
+    public int getRondaSalida(){ return rondaSalida; }
+
+    public static void reiniciarContador(){ contadorGlobal = 0; }
 }
