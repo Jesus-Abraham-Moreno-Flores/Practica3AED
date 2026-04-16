@@ -29,6 +29,8 @@ public class DiceGameApp extends Application {
     private XYChart.Series<String, Number> throughputSeries;
     private BarChart<String, Number> activityChart;
     private XYChart.Series<String, Number> activitySeries;
+    private LineChart<String, Number> wipChart;
+    private XYChart.Series<String, Number> wipSeries;
     private double[] actividadAcumulada = new double[Control.NUM_ESTACIONES];
     private int[] totalDadosPorEstacion = new int[Control.NUM_ESTACIONES];
     private int[] totalMovidosPorEstacion = new int[Control.NUM_ESTACIONES];
@@ -46,7 +48,7 @@ public class DiceGameApp extends Application {
         root.setTop(topContainer);
 
         //Panel central con graficas
-        HBox panelGraficas = crearPanelGraficas();
+        GridPane panelGraficas = crearPanelGraficas();
         root.setCenter(panelGraficas);
 
         root.setBottom(crearPanelBotones());
@@ -86,7 +88,13 @@ public class DiceGameApp extends Application {
         return panel;
     }
 
-    public HBox crearPanelGraficas() {
+    public GridPane crearPanelGraficas() {
+        GridPane grid = new GridPane();
+        grid.setHgap(20);
+        grid.setVgap(20);
+        grid.setPadding(new Insets(10, 20, 10, 20));
+        grid.setAlignment(Pos.CENTER);
+
         //Configuracion de las lineas de Throughput
         CategoryAxis xAxisT = new CategoryAxis();
         NumberAxis yAxisT = new NumberAxis();
@@ -114,14 +122,28 @@ public class DiceGameApp extends Application {
         activitySeries.setName("Promedio de Actividad Real");
         activityChart.getData().add(activitySeries);
 
-        HBox contenedor = new HBox(20, throughputChart, activityChart);
-        contenedor.setPadding(new Insets(10, 20, 10, 20));
-        contenedor.setAlignment(Pos.CENTER);
-        HBox.setHgrow(throughputChart, Priority.ALWAYS);
-        HBox.setHgrow(activityChart, Priority.ALWAYS);
-        contenedor.lookupAll(".chart-title").forEach(n -> n.setStyle("-fx-text-fill: #e94560; -fx-font-weight: bold;"));
+        //Configuracion de number in system o wip
+        CategoryAxis xAxisW = new CategoryAxis();
+        NumberAxis yAxisW = new NumberAxis();
+        xAxisW.setLabel("Ronda");
+        yAxisW.setLabel("Personas");
+        wipChart = new LineChart<>(xAxisW, yAxisW);
+        wipChart.setTitle("NUMBER IN SYSTEM (WIP)");
+        wipChart.setCreateSymbols(true);
+        wipChart.setPrefHeight(250);
+        wipSeries = new XYChart.Series<>();
+        wipSeries.setName("Personas en Proceso");
+        wipChart.getData().add(wipSeries);
 
-        return contenedor;
+        // Acomodar en el Grid (Columna, Fila)
+        grid.add(throughputChart, 0, 0);
+        grid.add(activityChart, 1, 0);
+        grid.add(wipChart, 0, 1, 2, 1); // La de WIP ocupa las dos columnas abajo
+
+        // Estilo para títulos
+        grid.lookupAll(".chart-title").forEach(n -> n.setStyle("-fx-text-fill: #e94560; -fx-font-weight: bold;"));
+
+        return grid;
     }
 
     public void actualizarGraficas() {
@@ -149,6 +171,8 @@ public class DiceGameApp extends Application {
             XYChart.Data<String, Number> data = new XYChart.Data<>("E" + (i + 1), porcentajePromedio);
             activitySeries.getData().add(data);
         }
+        int personasEnSistema = sistema.getTotalEnSistema();
+        wipSeries.getData().add(new XYChart.Data<>(String.valueOf(ronda), personasEnSistema));
     }
 
     public Label crearLabelStat(String titulo, String valor) {
@@ -175,16 +199,6 @@ public class DiceGameApp extends Application {
         for (int i = 0; i < sistema.NUM_ESTACIONES; i++) {
             panelEstaciones[i] = crearTarjetaEstacion(i + 1);
             fila.getChildren().add(panelEstaciones[i]);
-
-            // Icono de flecha entre las estaciones
-            if (i < sistema.NUM_ESTACIONES - 1) {
-                Label flecha = new Label("→");
-                flecha.setTextFill(Color.web("#404060"));
-                flecha.setFont(Font.font(18));
-                flecha.setAlignment(Pos.CENTER);
-                VBox.setVgrow(flecha, Priority.ALWAYS);
-                fila.getChildren().add(flecha);
-            }
         }
 
         ScrollPane scroll = new ScrollPane(fila);
