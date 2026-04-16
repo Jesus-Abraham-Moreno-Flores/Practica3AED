@@ -84,6 +84,14 @@ public class Control {
     public ArrayList<Estacion> getEstaciones(){ return estaciones; }
     public int getPersonasSalidas(){ return personasSalidas.size(); }
 
+    public int getTotalEnSistema(){
+        int total = 0;
+        for(Estacion estacion : estaciones){
+            total += estacion.getPersonasEnCola();
+        }
+        return total;
+    }
+
     public double getTiempoPromedioPaso(){
         if(personasSalidas.size() == 0) return 0;
         return (double) tiempoTotalAcumulado / personasSalidas.size();
